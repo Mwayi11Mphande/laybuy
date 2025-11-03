@@ -1,8 +1,7 @@
-// app/cart/page.tsx
+// app/cart/page.tsx - Enhanced version
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Product } from '@/types';
 
 interface CartItem {
   id: number;
@@ -20,8 +19,9 @@ interface CartItem {
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedShop, setSelectedShop] = useState<string | null>(null);
 
-  // Load cart items from localStorage or initialize with demo data
+  // Load cart items from localStorage
   useEffect(() => {
     const loadCartItems = () => {
       try {
@@ -39,7 +39,7 @@ export default function CartPage() {
               quantity: 1,
               image: 'https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg',
               shopName: 'Fjallraven Shop',
-              shopSlug: 'fjallraven-backpack',
+              shopSlug: 'fjallraven-shop',
               laybuyAvailable: true,
               category: 'men\'s clothing'
             },
@@ -51,7 +51,7 @@ export default function CartPage() {
               quantity: 1,
               image: 'https://fakestoreapi.com/img/71-3HjGNDUL._AC_SY879._SX._UX._SY._UY_.jpg',
               shopName: 'Casual Wear',
-              shopSlug: 'mens-casual-shirt',
+              shopSlug: 'casual-wear',
               laybuyAvailable: true,
               category: 'men\'s clothing'
             }
@@ -89,17 +89,40 @@ export default function CartPage() {
     localStorage.removeItem('laybuy-cart');
   };
 
-  const simulateLaybuyCheckout = () => {
-    alert('Redirecting to Tecam Payment Gateway...\n\nLaybuy Payment Simulation:\n- Total: MK' + total.toFixed(2) + '\n- 4 interest-free payments\n- First payment today\n- Secure Tecam processing');
-  };
-
-  const simulateRegularCheckout = () => {
-    alert('Proceeding to regular checkout...\n\nPay full amount: MK' + total.toFixed(2));
-  };
+  // Group items by shop
+  const itemsByShop = cartItems.reduce((acc, item) => {
+    if (!acc[item.shopSlug]) {
+      acc[item.shopSlug] = {
+        shopName: item.shopName,
+        items: [],
+        total: 0
+      };
+    }
+    acc[item.shopSlug].items.push(item);
+    acc[item.shopSlug].total += item.price * item.quantity;
+    return acc;
+  }, {} as Record<string, { shopName: string; items: CartItem[]; total: number }>);
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = subtotal > 50 ? 0 : 9.99; // Free shipping over $50
+  const shipping = subtotal > 50 ? 0 : 9.99;
   const total = subtotal + shipping;
+
+  // Checkout functions
+  const applyForLaybuy = (shopSlug?: string) => {
+    const shopItems = shopSlug ? itemsByShop[shopSlug]?.items : cartItems;
+    const shopTotal = shopSlug ? itemsByShop[shopSlug]?.total : total;
+    const shopName = shopSlug ? itemsByShop[shopSlug]?.shopName : 'Multiple Shops';
+    
+    alert(`🎉 Applying for Laybuy with ${shopName}!\n\nTotal: MK${shopTotal.toFixed(2)}\nPayments: 4 x MK${(shopTotal / 4).toFixed(2)}\n\nRedirecting to Tecam Payment Gateway...`);
+  };
+
+  const buyNow = (shopSlug?: string) => {
+    const shopItems = shopSlug ? itemsByShop[shopSlug]?.items : cartItems;
+    const shopTotal = shopSlug ? itemsByShop[shopSlug]?.total : total;
+    const shopName = shopSlug ? itemsByShop[shopSlug]?.shopName : 'Multiple Shops';
+    
+    alert(`💳 Buying now from ${shopName}!\n\nTotal: MK${shopTotal.toFixed(2)}\n\nRedirecting to secure checkout...`);
+  };
 
   if (isLoading) {
     return (
@@ -121,7 +144,7 @@ export default function CartPage() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Shopping Cart</h1>
               <p className="text-gray-600">
-                {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in your cart
+                {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} from {Object.keys(itemsByShop).length} shops
               </p>
             </div>
             {cartItems.length > 0 && (
@@ -165,92 +188,102 @@ export default function CartPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Laybuy Banner */}
-              <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">🎉 Laybuy Available!</h3>
-                    <p className="text-green-100">
-                      Split your ${total.toFixed(2)} total into 4 interest-free payments
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold">MK{(total / 4).toFixed(2)}</div>
-                    <div className="text-green-100 text-sm">per payment</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Cart Items List */}
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
-                {cartItems.map((item) => (
-                  <div key={item.id} className="flex items-center space-x-6 p-6 border-b last:border-b-0 hover:bg-gray-50 transition-colors">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-24 h-24 object-cover rounded-xl shadow-sm"
-                    />
-                    
-                    <div className="flex-1 min-w-0">
-                      <Link 
-                        href={`/shops/${item.shopSlug}`}
-                        className="block"
+              {/* Shop-based Cart Sections */}
+              {Object.entries(itemsByShop).map(([shopSlug, shopData]) => (
+                <div key={shopSlug} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                  {/* Shop Header */}
+                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-4 border-b">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-lg text-gray-900">{shopData.shopName}</h3>
+                        <p className="text-gray-600 text-sm">
+                          {shopData.items.length} {shopData.items.length === 1 ? 'item' : 'items'} • MK{shopData.total.toFixed(2)}
+                        </p>
+                      </div>
+                      <Link
+                        href={`/shops/${shopSlug}`}
+                        className="text-indigo-600 hover:text-indigo-700 font-semibold text-sm"
                       >
-                        <h3 className="font-semibold text-gray-900 text-lg hover:text-indigo-600 transition-colors">
+                        Visit Shop →
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* Shop Items */}
+                  {shopData.items.map((item) => (
+                    <div key={item.id} className="flex items-center space-x-6 p-6 border-b last:border-b-0 hover:bg-gray-50 transition-colors">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-24 h-24 object-cover rounded-xl shadow-sm"
+                      />
+                      
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900 text-lg">
                           {item.name}
                         </h3>
-                      </Link>
-                      <Link 
-                        href={`/shops/${item.shopSlug}`}
-                        className="text-indigo-600 hover:text-indigo-700 font-medium text-sm mb-2 inline-block"
-                      >
-                        {item.shopName}
-                      </Link>
-                      <div className="flex items-center space-x-4 mt-2">
-                        <span className="text-2xl font-bold text-gray-900">MK{item.price}</span>
-                        {item.laybuyAvailable && (
-                          <span className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full font-medium">
-                            ✅ Laybuy Available
+                        <div className="flex items-center space-x-4 mt-2">
+                          <span className="text-2xl font-bold text-gray-900">MK{item.price}</span>
+                          {item.laybuyAvailable && (
+                            <span className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full font-medium">
+                              ✅ Laybuy Available
+                            </span>
+                          )}
+                          <span className="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full">
+                            {item.category}
                           </span>
-                        )}
-                        <span className="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full">
-                          {item.category}
-                        </span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          className="w-10 h-10 rounded-full border text-blue-500 border-gray-900 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                        >
+                          -
+                        </button>
+                        <span className="w-8 text-center text-green-600 font-semibold">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="w-10 h-10 rounded-full border text-blue-500 border-gray-900 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <div className="text-right min-w-20">
+                        <div className="text-lg font-bold text-gray-900">
+                          MK{(item.price * item.quantity).toFixed(2)}
+                        </div>
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          className="text-red-500 hover:text-red-700 p-2 transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
                       </div>
                     </div>
+                  ))}
 
-                    <div className="flex items-center space-x-3">
-                      <button
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
-                      >
-                        -
-                      </button>
-                      <span className="w-8 text-center font-semibold">{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
-                      >
-                        +
-                      </button>
-                    </div>
-
-                    <div className="text-right min-w-20">
-                      <div className="text-lg font-bold text-gray-900">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </div>
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        className="text-red-500 hover:text-red-700 p-2 transition-colors"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    </div>
+                  {/* Shop Actions */}
+                  <div className="p-4 bg-gray-50 flex gap-3">
+                    <button
+                      onClick={() => applyForLaybuy(shopSlug)}
+                      className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                    >
+                      🛒 Apply Laybuy (This Shop)
+                    </button>
+                    <button
+                      onClick={() => buyNow(shopSlug)}
+                      className="flex-1 border-2 border-indigo-600 text-indigo-600 py-3 rounded-lg font-semibold hover:bg-indigo-50 transition-colors"
+                    >
+                      💳 Buy Now (This Shop)
+                    </button>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
 
             {/* Order Summary */}
@@ -269,7 +302,7 @@ export default function CartPage() {
                       {shipping === 0 ? (
                         <span className="text-green-600 font-semibold">FREE</span>
                       ) : (
-                        `$${shipping.toFixed(2)}`
+                        `MK${shipping.toFixed(2)}`
                       )}
                     </span>
                   </div>
@@ -292,7 +325,7 @@ export default function CartPage() {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-green-700">Today</span>
-                      <span className="font-semibold text-green-800">${(total / 4).toFixed(2)}</span>
+                      <span className="font-semibold text-green-800">MK{(total / 4).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-green-700">Every 2 weeks</span>
@@ -307,16 +340,16 @@ export default function CartPage() {
 
                 <div className="space-y-3">
                   <button 
-                    onClick={simulateLaybuyCheckout}
-                    className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105 duration-200"
+                    onClick={() => applyForLaybuy()}
+                    className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-4 rounded-xl font-semibold hover:from-green-600 hover:to-green-700 transition-all shadow-lg hover:shadow-xl"
                   >
-                    🛒 Checkout with Laybuy
+                    🛒 Apply Laybuy (All Items)
                   </button>
                   <button 
-                    onClick={simulateRegularCheckout}
+                    onClick={() => buyNow()}
                     className="w-full border-2 border-indigo-600 text-indigo-600 py-4 rounded-xl font-semibold hover:bg-indigo-50 transition-colors"
                   >
-                    Pay Full Amount
+                    💳 Buy All Now
                   </button>
                   <Link
                     href="/shops"

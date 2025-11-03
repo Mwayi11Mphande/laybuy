@@ -13,8 +13,9 @@ interface ShopPageProps {
 }
 
 export default async function ShopPage({ params }: ShopPageProps) {
+  const {slug} = await params;
   const products = await getProducts();
-  const shop = getShopBySlug(products, params.slug);
+  const shop = getShopBySlug(products, slug);
   
   if (!shop) {
     notFound();

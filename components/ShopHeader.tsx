@@ -1,6 +1,8 @@
 // components/ShopHeader.tsx
 'use client';
 
+import Link from "next/link";
+
 interface Shop {
   id: number;
   name: string;
@@ -17,7 +19,18 @@ interface ShopHeaderProps {
 
 export default function ShopHeader({ shop }: ShopHeaderProps) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
+    <div className="bg-white rounded-lg shadow-sm border p-6 relative">
+      {/* Cart Button - Fixed positioning */}
+      <div className="absolute top-6 right-6">
+        <Link
+          href="/cart"
+          className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all flex items-center space-x-2 hover:bg-indigo-700"
+        >
+          <span>🛒</span>
+          <span>View Cart</span>
+        </Link>
+      </div>
+      
       <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
         {/* Shop Avatar */}
         <div className="w-24 h-24 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center">
