@@ -34,14 +34,14 @@ export default async function RelatedProducts({ currentProduct }: RelatedProduct
               className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100 hover:border-indigo-100 group"
             >
               <Link href={`/products/${product.id}`}>
-                <div className="relative h-48 bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+                <div className="relative h-48 bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center overflow-hidden">
                   {product.image ? (
                     <Image
                       src={product.image}
                       alt={product.title}
-                      width={192}
-                      height={192}
-                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                      fill
+                      className="object-contain group-hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 768px) 100vw, 33vw"
                     />
                   ) : (
                     <div className="text-indigo-600 text-4xl font-bold">

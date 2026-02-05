@@ -2,12 +2,20 @@
 import { Product } from '@/types';
 
 let lastRequestTime = 0;
+let cachedProducts: Product[] | null = null;
+let cacheTimestamp = 0;
 const MIN_REQUEST_INTERVAL = 1000; // 1 second between requests
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export async function getProducts(): Promise<Product[]> {
   try {
-    // Rate limiting: Wait if we made a request recently
+    // Return cached data if available and fresh
     const now = Date.now();
+    if (cachedProducts && (now - cacheTimestamp) < CACHE_DURATION) {
+      return cachedProducts;
+    }
+    
+    // Rate limiting: Wait if we made a request recently
     const timeSinceLastRequest = now - lastRequestTime;
     
     if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
@@ -16,36 +24,52 @@ export async function getProducts(): Promise<Product[]> {
     
     lastRequestTime = Date.now();
     
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    
     const response = await fetch('https://fakestoreapi.com/products', {
       headers: {
         'Accept': 'application/json',
-        'User-Agent': 'LaybuyApp/1.0',
       },
-      cache: 'no-store', // Don't cache during build
+      cache: 'force-cache', // Use cache when possible
+      signal: controller.signal,
     });
     
+    clearTimeout(timeoutId);
+    
     if (!response.ok) {
-      // If we get a 403/429, use fallback data
-      console.warn(`API returned ${response.status}, using fallback data`);
+      // If API fails, use fallback data
       return getFallbackProducts();
     }
     
     const data = await response.json();
-    return data.map((product: any) => ({
+    const products = data.map((product: any) => ({
       ...product,
       laybuyAvailable: true,
     }));
+    
+    // Cache the products
+    cachedProducts = products;
+    cacheTimestamp = Date.now();
+    
+    return products;
   } catch (error) {
-    console.error('Failed to fetch products from API:', error);
+    // On error, return fallback data
     return getFallbackProducts();
   }
 }
 
 export async function getProductById(id: number): Promise<Product | null> {
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    
     const response = await fetch(`https://fakestoreapi.com/products/${id}`, {
-      cache: 'no-store',
+      cache: 'force-cache',
+      signal: controller.signal,
     });
+    
+    clearTimeout(timeoutId);
     
     if (!response.ok) {
       // Fallback to all products
@@ -59,7 +83,7 @@ export async function getProductById(id: number): Promise<Product | null> {
       laybuyAvailable: true,
     };
   } catch (error) {
-    console.error(`Failed to fetch product ${id}:`, error);
+    // On error, fetch from cache or fallback
     const products = await getProducts();
     return products.find(p => p.id === id) || null;
   }
