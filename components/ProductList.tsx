@@ -1,7 +1,7 @@
 // components/ProductList.tsx
 'use client';
 import { useState } from 'react';
-import Link from 'next/link';
+import Image from 'next/image';
 
 interface SellerProduct {
   id: number;
@@ -43,8 +43,10 @@ export default function ProductList() {
       {products.map((product) => (
         <div key={product.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
           <div className="flex items-center space-x-4">
-            <img
+            <Image
               src={product.image}
+              width={64}
+              height={64}
               alt={product.name}
               className="w-16 h-16 object-cover rounded-lg"
             />

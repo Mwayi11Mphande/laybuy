@@ -1,7 +1,6 @@
 // app/shops/page.tsx
 import ShopGrid from '../../components/ShopGrid';
 import ShopFilters from '@/components/ShopFilters';
-import { mockShops } from '../../lib/mockData';
 import { getShops } from '@/actions/products';
 
 export default async function ShopsPage() {

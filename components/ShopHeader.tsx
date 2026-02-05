@@ -1,6 +1,7 @@
 // components/ShopHeader.tsx
 'use client';
 
+import Image from "next/image";
 import Link from "next/link";
 
 interface Shop {
@@ -35,7 +36,7 @@ export default function ShopHeader({ shop }: ShopHeaderProps) {
         {/* Shop Avatar */}
         <div className="w-24 h-24 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-xl flex items-center justify-center">
           {shop.image ? (
-            <img src={shop.image} alt={shop.name} className="w-20 h-20 rounded-lg object-cover" />
+            <Image src={shop.image} alt={shop.name} width={80} height={80} className="w-20 h-20 rounded-lg object-cover" />
           ) : (
             <span className="text-3xl font-bold text-indigo-600">{shop.name.charAt(0)}</span>
           )}

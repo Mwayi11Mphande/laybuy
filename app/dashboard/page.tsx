@@ -2,17 +2,31 @@
 'use client';
 import { useState } from 'react';
 
+// Define interfaces at the top
+interface User {
+  name: string;
+  role: 'buyer' | 'seller' | 'admin';
+  email: string;
+}
+
+interface Tab {
+  id: string;
+  name: string;
+  role: 'all' | 'buyer' | 'seller' | 'admin';
+  icon: string;
+}
+
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
 
   // Mock user data - in real app, this would come from auth context
-  const user = {
+  const user: User = {
     name: 'John Doe',
-    role: 'buyer', // 'buyer', 'seller', 'admin'
+    role: 'buyer',
     email: 'john@example.com'
   };
 
-  const tabs = [
+  const tabs: Tab[] = [
     { id: 'overview', name: 'Overview', role: 'all', icon: '📊' },
     { id: 'laybuys', name: 'My Laybuys', role: 'buyer', icon: '🛒' },
     { id: 'products', name: 'My Products', role: 'seller', icon: '📦' },
@@ -41,7 +55,7 @@ export default function DashboardPage() {
                   Dashboard
                 </h1>
                 <p className="text-gray-600 mt-2">
-                  Welcome back, <span className="font-semibold text-indigo-600">{user.name}</span>! Here's what's happening today.
+                  Welcome back, <span className="font-semibold text-indigo-600">{user.name}</span>! Here&apos;s what&apos;s happening today.
                 </p>
               </div>
               <div className="mt-4 sm:mt-0">
@@ -92,7 +106,7 @@ export default function DashboardPage() {
 }
 
 // Tab Components
-function OverviewTab({ user }: { user: any }) {
+function OverviewTab({ user }: { user: User }) {
   return (
     <div>
       <h2 className="text-2xl font-bold text-gray-900 mb-8">Dashboard Overview</h2>

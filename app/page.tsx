@@ -1,6 +1,5 @@
 // app/page.tsx
 import { getProducts, getShops } from "@/actions/products";
-import ProductGrid from "@/components/ProductGrid";
 import ShopGrid from "@/components/ShopGrid";
 
 import Link from "next/link";

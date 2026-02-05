@@ -1,6 +1,7 @@
 // components/ProductModal.tsx
 'use client';
 import { useState } from 'react';
+import Image from 'next/image';
 
 interface Product {
   id: number;
@@ -59,7 +60,7 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Product Image */}
             <div>
-              <img
+              <Image
                 src={product.image}
                 alt={product.name}
                 className="w-full h-80 object-cover rounded-lg"

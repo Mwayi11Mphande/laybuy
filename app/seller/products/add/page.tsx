@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function AddProductPage() {
   const router = useRouter();
@@ -190,9 +191,11 @@ export default function AddProductPage() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Image Preview
                 </label>
-                <img
+                <Image
                   src={formData.image}
                   alt="Preview"
+                  width={128}
+                  height={128}
                   className="w-32 h-32 object-cover rounded-lg border"
                 />
               </div>

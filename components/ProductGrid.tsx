@@ -1,5 +1,6 @@
 'use client';
 import { Product } from '@/types';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -7,6 +8,20 @@ interface ProductGridProps {
   products: Product[];
   shopName?: string;
   shopSlug?: string;
+}
+
+// Define CartItem interface
+interface CartItem {
+  id: number;
+  productId: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  shopName: string;
+  shopSlug: string;
+  laybuyAvailable: boolean;
+  category: string;
 }
 
 export default function ProductGrid({ products, shopName, shopSlug }: ProductGridProps) {
@@ -23,17 +38,17 @@ export default function ProductGrid({ products, shopName, shopSlug }: ProductGri
     try {
       // Get existing cart or initialize empty array
       const existingCart = localStorage.getItem('laybuy-cart');
-      const cartItems = existingCart ? JSON.parse(existingCart) : [];
+      const cartItems: CartItem[] = existingCart ? JSON.parse(existingCart) : [];
       
       // Check if product already in cart
-      const existingItem = cartItems.find((item: any) => item.productId === product.id);
+      const existingItem = cartItems.find((item: CartItem) => item.productId === product.id);
       
       if (existingItem) {
         // Update quantity if already in cart
         existingItem.quantity += 1;
       } else {
         // Add new item to cart
-        const newItem = {
+        const newItem: CartItem = {
           id: Date.now(), // Simple ID generation
           productId: product.id,
           name: product.title,
@@ -73,10 +88,12 @@ export default function ProductGrid({ products, shopName, shopSlug }: ProductGri
           className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100 hover:border-indigo-100 group"
         >
           <Link href={`/products/${product.id}`}>
-            <div className="aspect-w-16 aspect-h-9 bg-gradient-to-br from-indigo-100 to-purple-100 h-48 relative flex items-center justify-center">
+            <div className="relative h-48 bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
               {product.image ? (
-                <img
+                <Image
                   src={product.image}
+                  width={192}
+                  height={192}
                   alt={product.title}
                   className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                 />

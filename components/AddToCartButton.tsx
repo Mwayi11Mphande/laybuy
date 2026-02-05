@@ -4,13 +4,36 @@
 import { useState } from 'react';
 import { Product } from '@/types';
 
-interface AddToCartButtonProps {
-  product: Product;
-  shopName: string;
-  shopSlug: string;
+// Define CartItem interface
+interface CartItem {
+  id: number;
+  productId: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  shopName?: string; // Make optional
+  shopSlug?: string; // Make optional
+  laybuyAvailable: boolean;
+  category: string;
+  installmentPlan?: string; // Add installment plan
 }
 
-export default function AddToCartButton({ product, shopName, shopSlug }: AddToCartButtonProps) {
+interface AddToCartButtonProps {
+  product: Product;
+  shopName?: string;
+  shopSlug?: string;
+  quantity?: number;
+  installmentPlan?: string;
+}
+
+export default function AddToCartButton({ 
+  product, 
+  shopName, 
+  shopSlug,
+  quantity = 1,
+  installmentPlan = '4-weeks'
+}: AddToCartButtonProps) {
   const [isAdding, setIsAdding] = useState(false);
 
   const addToCart = () => {
@@ -18,27 +41,28 @@ export default function AddToCartButton({ product, shopName, shopSlug }: AddToCa
     
     // Get existing cart or initialize empty array
     const existingCart = localStorage.getItem('laybuy-cart');
-    const cartItems = existingCart ? JSON.parse(existingCart) : [];
+    const cartItems: CartItem[] = existingCart ? JSON.parse(existingCart) : [];
     
     // Check if product already in cart
-    const existingItem = cartItems.find((item: any) => item.productId === product.id);
+    const existingItem = cartItems.find((item: CartItem) => item.productId === product.id);
     
     if (existingItem) {
       // Update quantity if already in cart
-      existingItem.quantity += 1;
+      existingItem.quantity += quantity;
     } else {
       // Add new item to cart
-      const newItem = {
-        id: Date.now(), // Simple ID generation
+      const newItem: CartItem = {
+        id: Date.now(),
         productId: product.id,
         name: product.title,
         price: product.price,
-        quantity: 1,
+        quantity: quantity,
         image: product.image,
         shopName: shopName,
         shopSlug: shopSlug,
-        laybuyAvailable: true, // Assuming all products support Laybuy
-        category: product.category
+        laybuyAvailable: product.laybuyAvailable || true,
+        category: product.category,
+        installmentPlan: installmentPlan
       };
       cartItems.push(newItem);
     }

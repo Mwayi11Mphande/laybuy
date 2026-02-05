@@ -1,6 +1,7 @@
 'use client';
 import { Shop } from '@/types';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface ShopGridProps {
   shops: Shop[];
@@ -17,8 +18,10 @@ export default function ShopGrid({ shops }: ShopGridProps) {
         >
           <div className="aspect-w-16 aspect-h-9 bg-gradient-to-br from-indigo-100 to-purple-100 h-48 relative flex items-center justify-center">
             {shop.image ? (
-              <img
+              <Image
                 src={shop.image}
+                width={150}
+                height={150}
                 alt={shop.name}
                 className="object-cover w-full h-full"
               />

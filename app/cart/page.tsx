@@ -1,4 +1,4 @@
-// app/cart/page.tsx - Enhanced version
+// app/cart/page.tsx
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -20,9 +20,17 @@ interface CartItem {
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
+
+  // Set client-side flag to prevent hydration mismatch
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // Load cart items from localStorage
   useEffect(() => {
+    if (!isClient) return;
+
     const loadCartItems = () => {
       try {
         const savedCart = localStorage.getItem('laybuy-cart');
@@ -41,7 +49,7 @@ export default function CartPage() {
               shopName: 'Fjallraven Shop',
               shopSlug: 'fjallraven-shop',
               laybuyAvailable: true,
-              category: 'men\'s clothing'
+              category: "men's clothing"
             },
             {
               id: 2,
@@ -53,7 +61,7 @@ export default function CartPage() {
               shopName: 'Casual Wear',
               shopSlug: 'casual-wear',
               laybuyAvailable: true,
-              category: 'men\'s clothing'
+              category: "men's clothing"
             }
           ];
           setCartItems(demoCart);
@@ -67,7 +75,7 @@ export default function CartPage() {
     };
 
     loadCartItems();
-  }, []);
+  }, [isClient]);
 
   const updateQuantity = (id: number, newQuantity: number) => {
     if (newQuantity < 1) return;
@@ -122,12 +130,14 @@ export default function CartPage() {
     alert(`💳 Buying now from ${shopName}!\n\nTotal: MK${shopTotal.toFixed(2)}\n\nRedirecting to secure checkout...`);
   };
 
-  if (isLoading) {
+  // Show loading state on server
+  if (!isClient || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50/30 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading your cart...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Loading Your Cart</h2>
+          <p className="text-gray-600">Please wait while we load your shopping cart...</p>
         </div>
       </div>
     );
@@ -135,6 +145,9 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      {/* Navbar Spacer */}
+      <div className="h-16"></div>
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-8">
@@ -210,11 +223,15 @@ export default function CartPage() {
                   {/* Shop Items */}
                   {shopData.items.map((item) => (
                     <div key={item.id} className="flex items-center space-x-6 p-6 border-b last:border-b-0 hover:bg-gray-50 transition-colors">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        className="w-24 h-24 object-cover rounded-xl shadow-sm"
-                      />
+                      <div className="relative w-24 h-24 flex-shrink-0">
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          fill
+                          className="object-cover rounded-xl shadow-sm"
+                          sizes="96px"
+                        />
+                      </div>
                       
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-900 text-lg">
@@ -224,7 +241,7 @@ export default function CartPage() {
                           <span className="text-2xl font-bold text-gray-900">MK{item.price}</span>
                           {item.laybuyAvailable && (
                             <span className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full font-medium">
-                               Laybuy Available
+                              Laybuy Available
                             </span>
                           )}
                           <span className="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full">
@@ -236,14 +253,15 @@ export default function CartPage() {
                       <div className="flex items-center space-x-3">
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="w-10 h-10 rounded-full border text-blue-500 border-gray-900 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                          className="w-10 h-10 rounded-full border text-gray-600 border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                          disabled={item.quantity <= 1}
                         >
                           -
                         </button>
-                        <span className="w-8 text-center text-green-600 font-semibold">{item.quantity}</span>
+                        <span className="w-8 text-center font-semibold">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="w-10 h-10 rounded-full border text-blue-500 border-gray-900 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                          className="w-10 h-10 rounded-full border text-gray-600 border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
                         >
                           +
                         </button>
@@ -255,7 +273,8 @@ export default function CartPage() {
                         </div>
                         <button
                           onClick={() => removeItem(item.id)}
-                          className="text-red-500 hover:text-red-700 p-2 transition-colors"
+                          className="text-red-500 hover:text-red-700 p-2 transition-colors mt-2"
+                          aria-label="Remove item"
                         >
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -266,7 +285,7 @@ export default function CartPage() {
                   ))}
 
                   {/* Shop Actions */}
-                  <div className="p-4 bg-gray-50 flex gap-3">
+                  <div className="p-4 bg-gray-50 flex flex-col sm:flex-row gap-3">
                     <button
                       onClick={() => applyForLaybuy(shopSlug)}
                       className="flex-1 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors"
@@ -292,7 +311,7 @@ export default function CartPage() {
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal ({cartItems.length} items)</span>
-                    <span>MK{subtotal.toFixed(2)}</span>
+                    <span className="font-medium">MK{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>
