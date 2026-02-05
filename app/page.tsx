@@ -5,7 +5,7 @@ import ShopGrid from "@/components/ShopGrid";
 import Link from "next/link";
 
 export default async function Home() {
-  const products = await getProducts();
+  // const products = await getProducts();
   const shops = await getShops();
 
   return (

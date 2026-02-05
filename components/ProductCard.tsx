@@ -5,6 +5,20 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
+// Define CartItem interface
+interface CartItem {
+  id: number;
+  productId: number;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  shopName: string;
+  shopSlug: string;
+  laybuyAvailable: boolean;
+  category: string;
+}
+
 interface ProductCardProps {
   product: Product;
   showAddToCart?: boolean;
@@ -31,15 +45,15 @@ export default function ProductCard({
     try {
       // Get existing cart or initialize empty array
       const existingCart = localStorage.getItem('laybuy-cart');
-      const cartItems = existingCart ? JSON.parse(existingCart) : [];
+      const cartItems: CartItem[] = existingCart ? JSON.parse(existingCart) : [];
       
       // Check if product already in cart
-      const existingItem = cartItems.find((item: any) => item.productId === product.id);
+      const existingItem = cartItems.find((item: CartItem) => item.productId === product.id);
       
       if (existingItem) {
         existingItem.quantity += 1;
       } else {
-        const newItem = {
+        const newItem: CartItem = {
           id: Date.now(),
           productId: product.id,
           name: product.title,
