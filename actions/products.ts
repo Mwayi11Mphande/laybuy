@@ -1,22 +1,33 @@
 // actions/products.ts
 import { Product } from '@/types';
 
-// Update getProducts with timeout
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL = 1000; // 1 second between requests
+
 export async function getProducts(): Promise<Product[]> {
   try {
-    // Add timeout to prevent hanging
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
+    // Rate limiting: Wait if we made a request recently
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastRequestTime;
+    
+    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+      await new Promise(resolve => setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest));
+    }
+    
+    lastRequestTime = Date.now();
+    
     const response = await fetch('https://fakestoreapi.com/products', {
-      signal: controller.signal,
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'LaybuyApp/1.0',
+      },
+      cache: 'no-store', // Don't cache during build
     });
-
-    clearTimeout(timeoutId);
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // If we get a 403/429, use fallback data
+      console.warn(`API returned ${response.status}, using fallback data`);
+      return getFallbackProducts();
     }
     
     const data = await response.json();
@@ -26,21 +37,20 @@ export async function getProducts(): Promise<Product[]> {
     }));
   } catch (error) {
     console.error('Failed to fetch products from API:', error);
-    
-    // Return fallback data
     return getFallbackProducts();
   }
 }
 
 export async function getProductById(id: number): Promise<Product | null> {
   try {
-    // Try to get from API first
     const response = await fetch(`https://fakestoreapi.com/products/${id}`, {
-      next: { revalidate: 3600 }, // Cache for 1 hour
+      cache: 'no-store',
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // Fallback to all products
+      const products = await getProducts();
+      return products.find(p => p.id === id) || null;
     }
     
     const product = await response.json();
@@ -50,8 +60,6 @@ export async function getProductById(id: number): Promise<Product | null> {
     };
   } catch (error) {
     console.error(`Failed to fetch product ${id}:`, error);
-    
-    // Fallback: get from all products
     const products = await getProducts();
     return products.find(p => p.id === id) || null;
   }

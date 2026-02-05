@@ -10,6 +10,13 @@ interface ProductPageProps {
   }>;
 }
 
+export const dynamic = 'error'; // or 'force-static' if you want static with fallback
+export const dynamicParams = true; // Allow dynamic params not generated at build time
+
+// Or disable static generation completely:
+export const revalidate = 0; // Always fetch fresh data
+
+
 export default async function ProductPage({ params }: ProductPageProps) {
   const { id } = await params;
   const productId = parseInt(id);

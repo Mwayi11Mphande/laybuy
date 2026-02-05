@@ -201,3 +201,6 @@ export async function generateStaticParams() {
     return [];
   }
 }
+
+export const dynamic = 'force-dynamic'; // Force dynamic rendering
+export const revalidate = 3600; // Revalidate every hour
