@@ -38,7 +38,7 @@ export async function getProducts(): Promise<Product[]> {
     clearTimeout(timeoutId);
     
     if (!response.ok) {
-      // If API fails, use fallback data
+      // If API fails, silently use fallback data
       return getFallbackProducts();
     }
     
