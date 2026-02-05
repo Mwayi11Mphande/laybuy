@@ -172,7 +172,7 @@ export default function CommunityPage() {
                     <div className="text-indigo-600 text-sm">{testimonial.role}</div>
                   </div>
                 </div>
-                <p className="text-gray-600 italic">"{testimonial.comment}"</p>
+                <p className="text-gray-600 italic">&ldquo;{testimonial.comment}&ldquo;</p>
               </div>
             ))}
           </div>

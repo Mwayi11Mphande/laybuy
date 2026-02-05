@@ -2,6 +2,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface CartItem {
   id: number;
@@ -19,7 +20,6 @@ interface CartItem {
 export default function CartPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedShop, setSelectedShop] = useState<string | null>(null);
 
   // Load cart items from localStorage
   useEffect(() => {
@@ -109,15 +109,13 @@ export default function CartPage() {
 
   // Checkout functions
   const applyForLaybuy = (shopSlug?: string) => {
-    const shopItems = shopSlug ? itemsByShop[shopSlug]?.items : cartItems;
     const shopTotal = shopSlug ? itemsByShop[shopSlug]?.total : total;
     const shopName = shopSlug ? itemsByShop[shopSlug]?.shopName : 'Multiple Shops';
     
-    alert(`🎉 Applying for Laybuy with ${shopName}!\n\nTotal: MK${shopTotal.toFixed(2)}\nPayments: 4 x MK${(shopTotal / 4).toFixed(2)}\n\nRedirecting to Tecam Payment Gateway...`);
+    alert(`Applying for Laybuy with ${shopName}!\n\nTotal: MK${shopTotal.toFixed(2)}\nPayments: 4 x MK${(shopTotal / 4).toFixed(2)}\n\nRedirecting to Tecam Payment Gateway...`);
   };
 
   const buyNow = (shopSlug?: string) => {
-    const shopItems = shopSlug ? itemsByShop[shopSlug]?.items : cartItems;
     const shopTotal = shopSlug ? itemsByShop[shopSlug]?.total : total;
     const shopName = shopSlug ? itemsByShop[shopSlug]?.shopName : 'Multiple Shops';
     
@@ -212,7 +210,7 @@ export default function CartPage() {
                   {/* Shop Items */}
                   {shopData.items.map((item) => (
                     <div key={item.id} className="flex items-center space-x-6 p-6 border-b last:border-b-0 hover:bg-gray-50 transition-colors">
-                      <img
+                      <Image
                         src={item.image}
                         alt={item.name}
                         className="w-24 h-24 object-cover rounded-xl shadow-sm"
@@ -226,7 +224,7 @@ export default function CartPage() {
                           <span className="text-2xl font-bold text-gray-900">MK{item.price}</span>
                           {item.laybuyAvailable && (
                             <span className="bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full font-medium">
-                              ✅ Laybuy Available
+                               Laybuy Available
                             </span>
                           )}
                           <span className="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full">
