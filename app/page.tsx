@@ -1,11 +1,9 @@
 // app/page.tsx
-import { getProducts, getShops } from "@/actions/products";
+import { getShops } from "@/actions/products";
 import ShopGrid from "@/components/ShopGrid";
-
 import Link from "next/link";
 
 export default async function Home() {
-  // const products = await getProducts();
   const shops = await getShops();
 
   return (
@@ -22,9 +20,12 @@ export default async function Home() {
               payments over time with Laybyt
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="bg-white text-indigo-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+              <Link 
+                href="/shops"
+                className="bg-white text-indigo-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-center"
+              >
                 Start Shopping
-              </button>
+              </Link>
               <button className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-indigo-600 transition-colors">
                 Become a Seller
               </button>
@@ -69,19 +70,23 @@ export default async function Home() {
           </div>
         </div>
       </section>
+
       {/* Featured Shops */}
       <section className="py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900">Featured Shops</h2>
-            <button className="text-indigo-600 hover:text-indigo-700 font-semibold">
-              <Link href="/shops" >View All Shops →</Link>
-            </button>
+            <Link 
+              href="/shops" 
+              className="text-indigo-600 hover:text-indigo-700 font-semibold"
+            >
+              View All Shops →
+            </Link>
           </div>
-          {/* <ProductGrid products={products} /> */}
           <ShopGrid shops={shops} />
         </div>
       </section>
+
       {/* Benefits Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -1,3 +1,4 @@
+// app/shops/[slug]/page.tsx
 import { notFound } from 'next/navigation';
 import ProductGrid from '@/components/ProductGrid';
 import ShopHeader from '@/components/ShopHeader';
@@ -6,14 +7,16 @@ import { getShopBySlug, enhanceProductsWithShopData } from '@/lib/shop-utils';
 import LaybuyCTASection from '@/components/LaybuyCTASection';
 import PaymentInfoCard from '@/components/PaymentInfoCard';
 
+// Interface for the params
 interface ShopPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export default async function ShopPage({ params }: ShopPageProps) {
-  const {slug} = await params;
+  // Await the params since they're now a Promise
+  const { slug } = await params;
   const products = await getProducts();
   const shop = getShopBySlug(products, slug);
   
@@ -28,6 +31,9 @@ export default async function ShopPage({ params }: ShopPageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      {/* Navbar Spacer */}
+      <div className="h-16"></div>
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Shop Header Card */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-8">
@@ -58,7 +64,11 @@ export default async function ShopPage({ params }: ShopPageProps) {
                 </div>
               </div>
               
-              <ProductGrid products={shopProducts} />
+              <ProductGrid 
+                products={shopProducts} 
+                shopName={shop.name}
+                shopSlug={shop.slug}
+              />
             </section>
 
             {/* Shop Info Section */}
@@ -174,4 +184,20 @@ export default async function ShopPage({ params }: ShopPageProps) {
       </div>
     </div>
   );
+}
+
+// Optional: Generate static params for better performance
+export async function generateStaticParams() {
+  try {
+    const products = await getProducts();
+    return products.map((product) => ({
+      slug: product.title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-'),
+    }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    return [];
+  }
 }
